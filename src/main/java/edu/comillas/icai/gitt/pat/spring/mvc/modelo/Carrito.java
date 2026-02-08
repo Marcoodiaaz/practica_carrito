@@ -1,7 +1,7 @@
 package edu.comillas.icai.gitt.pat.spring.mvc.modelo;
 
 public class Carrito {
-    private int idCarrito;
+    private static int idCarrito;
     private int idArticulo;
     private String descripcion;
     private int unidades;
@@ -20,7 +20,7 @@ public class Carrito {
     }
 
     public void setIdCarrito(int idCarrito) {
-        this.idCarrito = idCarrito;
+        Carrito.idCarrito = idCarrito;
     }
 
     public int getIdArticulo() {
