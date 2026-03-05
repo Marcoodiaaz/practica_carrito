@@ -1,46 +1,57 @@
 package edu.comillas.icai.gitt.pat.spring.mvc.controladores;
-
-import edu.comillas.icai.gitt.pat.spring.mvc.modelo.Carrito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import edu.comillas.icai.gitt.pat.spring.mvc.entidades.LineaCarrito;
+import edu.comillas.icai.gitt.pat.spring.mvc.entidades.Carrito;
+import edu.comillas.icai.gitt.pat.spring.mvc.servicio.CarritoServicio;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/carrito")
 public class CarritoControlador {
-    private final Map<Integer, Carrito> carritos = new HashMap<>();
 
+    @Autowired
+    private CarritoServicio carritoServicio;
+
+    // 1. Crear el carrito (Cabecera)
     @PostMapping
-    public ResponseEntity<Carrito> crearCarrito(@RequestBody Carrito nuevoCarrito) {
-        carritos.put(Carrito.getIdCarrito(), nuevoCarrito);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCarrito);
+    public ResponseEntity<Carrito> crearCarrito(@Valid @RequestBody Carrito nuevoCarrito) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(carritoServicio.crear(nuevoCarrito));
     }
 
+    // 2. Obtener todos los carritos
     @GetMapping
-    public List<Carrito> getCarritos() {
-        return new ArrayList<>(carritos.values());
+    public List<Carrito> listarTodos() {
+        return carritoServicio.obtenerTodos();
     }
 
-    @GetMapping("/{idCarrito}")
-    public ResponseEntity<Carrito> getCarrito(@PathVariable int idCarrito) {
-        Carrito c = carritos.get(idCarrito);
-        return (c != null) ? ResponseEntity.ok(c) : ResponseEntity.notFound().build();
+    // 3. Obtener un carrito específico por ID
+    @GetMapping("/{id}")
+    public Carrito obtenerUno(@PathVariable Long id) throws Throwable {
+        return carritoServicio.obtenerPorId(id);
     }
 
-    @PutMapping("/{idCarrito}")
-    public ResponseEntity<Carrito> modificaCarrito(@PathVariable Integer idCarrito, @RequestBody Carrito carrito) {
-        if (!carritos.containsKey(idCarrito)) {
-            return ResponseEntity.notFound().build();
-        }
-        carritos.put(idCarrito, carrito);
-        return ResponseEntity.ok(carrito);
+    // 4. AÑADIR LÍNEA (Nueva funcionalidad solicitada)
+    @PostMapping("/{id}/lineas")
+    public Carrito añadirLinea(@PathVariable Long id, @Valid @RequestBody LineaCarrito linea) throws Throwable {
+        return carritoServicio.añadirLinea(id, linea);
     }
 
-    @DeleteMapping("/{idCarrito}")
+    // 5. BORRAR LÍNEA (Nueva funcionalidad solicitada)
+    @DeleteMapping("/{idCarrito}/lineas/{idLinea}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void borrarCarrito(@PathVariable int idCarrito) {
-        carritos.remove(idCarrito);
+    public void borrarLinea(@PathVariable Long idCarrito, @PathVariable Long idLinea) throws Throwable {
+        carritoServicio.eliminarLinea(idCarrito, idLinea);
+    }
+
+    // 6. Borrar carrito completo
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void borrarCarrito(@PathVariable Long id) {
+        carritoServicio.eliminarCarrito(id);
     }
 }
